@@ -1,5 +1,3 @@
-%include "stdio.inc"
-
 org 0x7C00
 bits 16
 
@@ -30,7 +28,7 @@ DriveNo                 db 0
                         db 0    ; reserved
 Signature               db 29h
 VolumeID                dd 12h, 34h, 56h, 78h
-VolumeLabel             db 'Fuck you   '
+VolumeLabel             db 'FUCK YOU   '
 FileSystem              db 'FAT12   '
 
     ;;
@@ -287,6 +285,8 @@ wait_key_and_reboot:
     mov ah, 0
     int 16h
     int 0x19
+
+%include "stdio.inc"
 
     ;;
     ;; Variables and stuff
