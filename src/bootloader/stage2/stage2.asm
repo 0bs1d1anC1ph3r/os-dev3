@@ -18,4 +18,4 @@ start:
     cli
     hlt
 
-msg_loading: db 'Preparing to load operating system...', ENDL, 0
+msg_loading: db 'Preparing to enter protected mode...', ENDL, 0
