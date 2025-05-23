@@ -1,30 +1,17 @@
-%ifndef __STDIO_INC_98076GH98798HJGGH_INCLUDED__
-%define __STDIO_INC_98076GH98798HJGGH_INCLUDED__
-
-bits 16
-
-    ;;  Prints a string to the screen
-    ;;  Params:
-    ;;      - ds:si points to a string
-    ;;
+%ifndef __STDIO_INC_67343546FDCC56AAB872_INCLUDED__
+%define __STDIO_INC_67343546FDCC56AAB872_INCLUDED__
 
 puts:
-    ;; save registers we will modify
-    pusha
+		pusha				; save registers
+.print_loop:
+		lodsb				; load next byte from string from SI to AL
+		or	al, al			; Does AL=0?
+		jz	.print_loop_done; Yep, null terminator found-bail out
+		mov	ah, 0x0E		; Nope-Print the character
+		int	10h		    	; invoke BIOS
+		jmp	.print_loop		; Repeat until null terminator found
+.print_loop_done:
+		popa				; restore registers
+		ret			    	; we are done, so return
 
-.loop:
-    lodsb                       ; loads next character in al
-    or al, al                   ; verify if next character is NULL?
-    jz .done
-
-    mov ah, 0x0E                ; call bios interrupt
-    mov bh, 0
-    int 0x10
-
-    jmp .loop
-
-.done:
-    popa
-    ret
-
-%endif ;__STDIO_INC_98076GH98798HJGGH_INCLUDED__
+%endif ;__STDIO_INC_67343546FDCC56AAB872_INCLUDED__

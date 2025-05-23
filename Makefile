@@ -12,14 +12,13 @@ all: floppy_image
 #
 # Floppy image
 #
-floppy_image: $(BUILD_DIR)/main_floppy.img
-
-$(BUILD_DIR)/main_floppy.img: bootloader kernel
+floppy_image: bootloader
+	@echo "[+] Creating blank floppy image"
 	dd if=/dev/zero of=$(BUILD_DIR)/main_floppy.img bs=512 count=2880
-	mkfs.fat -F 12 -n "FUCK YOU   " $(BUILD_DIR)/main_floppy.img
+	@echo "[+] Writing stage1 to boot sector (LBA 0)"
 	dd if=$(BUILD_DIR)/stage1.bin of=$(BUILD_DIR)/main_floppy.img conv=notrunc
-	mcopy -i $(BUILD_DIR)/main_floppy.img $(BUILD_DIR)/stage2.bin ::STAGE2.bin
-#mcopy -i $(BUILD_DIR)/main_floppy.img $(BUILD_DIR)/kernel.bin ::KERNEL.BIN
+	@echo "[+] Copying STAGE2.BIN into FAT12 filesystem"
+	mcopy -i $(BUILD_DIR)/main_floppy.img $(BUILD_DIR)/stage2.bin ::STAGE2.BIN
 
 #
 # Bootloader

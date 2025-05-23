@@ -1,20 +1,18 @@
+org 0x0000
 bits 16
-org 0x500
 
 %define ENDL 0x0D, 0x0A
 
-%include "stdio.inc"
-
 start:
-    ; print loading msg
     cli
-    push cs
-    pop ds
+    mov ax, 0x2000
+    mov ds, ax
     mov si, msg_loading
     call puts
-
 .halt:
     cli
     hlt
+
+%include "stdio.inc"
 
 msg_loading: db 'Preparing to load operating system...', ENDL, 0
