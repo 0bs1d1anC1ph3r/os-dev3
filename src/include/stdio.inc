@@ -1,6 +1,8 @@
 %ifndef __STDIO_INC_67343546FDCC56AAB872_INCLUDED__
 %define __STDIO_INC_67343546FDCC56AAB872_INCLUDED__
 
+bits 16
+
 puts:
 		pusha				; save registers
 .print_loop:

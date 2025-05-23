@@ -103,7 +103,7 @@ bootloader_start:
     call disk_read
 
     xor bx, bx              ; search for stage2.bin
-    mov di, 0x0500          ; buffer
+    mov di, 0x0500
 
 .search_stage2:
     mov si, file_stage2_bin
@@ -126,7 +126,7 @@ bootloader_start:
 
     ;; load FAT from disk into memory
     mov ax, [ReservedForBoot]
-    mov bx, 0x0500              ; buffer
+    mov bx, 0x0500
     mov cl, [SectorsPerFat]
     mov dl, [DriveNo]
 
