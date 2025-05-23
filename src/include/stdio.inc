@@ -10,6 +10,7 @@ bits 16
 
 puts:
     ;; save registers we will modify
+    pusha
     push si
     push ax
     push bx
@@ -29,6 +30,7 @@ puts:
     pop bx
     pop ax
     pop si
+    popa
     ret
 
 %endif ;__STDIO_INC_98076GH98798HJGGH_INCLUDED__
