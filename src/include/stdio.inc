@@ -11,9 +11,6 @@ bits 16
 puts:
     ;; save registers we will modify
     pusha
-    push si
-    push ax
-    push bx
 
 .loop:
     lodsb                       ; loads next character in al
@@ -27,9 +24,6 @@ puts:
     jmp .loop
 
 .done:
-    pop bx
-    pop ax
-    pop si
     popa
     ret
 

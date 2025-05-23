@@ -1,14 +1,12 @@
 bits 16
 org 0x500
 
-jmp start
-
 %define ENDL 0x0D, 0x0A
 
 %include "stdio.inc"
 
 start:
-    ; print hello world message
+    ; print loading msg
     cli
     push cs
     pop ds
