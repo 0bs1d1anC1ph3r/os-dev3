@@ -99,11 +99,11 @@ bootloader_start:
 
     pop ax              ; restore root directory start LBA
     mov dl, [DriveNo]   ; dl = drive number
-    mov bx, 0x0500      ; es:bx = buffer
+    mov bx, buffer      ; es:bx = buffer
     call disk_read
 
     xor bx, bx              ; search for stage2.bin
-    mov di, 0x0500
+    mov di, buffer
 
 .search_stage2:
     mov si, file_stage2_bin
@@ -126,7 +126,7 @@ bootloader_start:
 
     ;; load FAT from disk into memory
     mov ax, [ReservedForBoot]
-    mov bx, 0x0500
+    mov bx, buffer
     mov cl, [SectorsPerFat]
     mov dl, [DriveNo]
 
@@ -157,7 +157,7 @@ bootloader_start:
     mov cx, 2
     div cx                      ; ax = index of entery in FAT, dx = cluster mod 2
 
-    mov si, 0x0500              ; buffer
+    mov si, buffer              ; buffer
     add si, ax
     mov ax, [ds:si]             ; read entery from FAT table at index ax
 
@@ -297,8 +297,10 @@ msg_read_failed:        db 'Disk failed', ENDL, 0
 msg_stage2_not_found:   db 'No STAGE2.bin', ENDL, 0
 file_stage2_bin:        db 'STAGE2  BIN'
 stage2_cluster:         dw 0
-STAGE2_LOAD_SEGMENT     equ 0x2000
-STAGE2_LOAD_OFFSET      equ 0
+STAGE2_LOAD_SEGMENT     equ 0x0
+STAGE2_LOAD_OFFSET      equ 0x500
 
 times 510-($-$$) db 0
 dw 0xAA55
+
+buffer:
