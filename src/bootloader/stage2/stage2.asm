@@ -7,9 +7,26 @@ jmp start
 %include "stdio.inc"
 %include "gdt.inc"
 %include "a20.inc"
+%include "bdp.inc"
+%include "floppy16.inc"
+%include "fat12.inc"
+%include "common.inc"
 
 %define ENDL 0x0D, 0x0A
+
 msg_loading: db 'Preparing to enter protected mode...', ENDL, 0
+msg_read_failed: db 'Disk failed', ENDL, 0
+msg_test:    db 'Here', ENDL, 0
+
+fatal_disk_error:
+    mov si, msg_read_failed
+    call puts
+    jmp wait_key_and_reboot
+
+wait_key_and_reboot:
+    mov ah, 0
+    int 16h
+    int 0x19
 
 start:
     cli                          ; disable interrupts
@@ -27,7 +44,24 @@ start:
     call install_gdt             ; install the gdt
     call enable_a20_output_port
 
-    ;; set PE bit
+    call load_root               ; load root directory table
+
+    mov bx, IMAGE_RMODE_BASE
+    mov bp, IMAGE_RMODE_BASE
+    mov esi, ImageName
+    call load_file
+    mov dword [ImageSize], ecx
+    cmp ax, -1
+    je enter_protected_mode
+    mov si, msg_read_failed
+    call puts
+    mov ah, 0
+    int 0x16
+    int 0x19
+    cli
+    hlt
+
+enter_protected_mode:
     mov eax, cr0
     or eax, 1
     mov cr0, eax
@@ -53,7 +87,20 @@ protected_mode_start:
 
     mov edx, msg_pm              ; set edx to happy message
     call puts32                  ; print the string with VGA
-    jmp .hang                    ; jump to hang
+
+.copy_image:
+    mov eax, dword [ImageSize]
+    movzx ebx, word [BytesPerSector]
+    mul ebx
+    mov ebx, 4
+    div ebx
+    cld
+    mov esi, IMAGE_RMODE_BASE
+    mov edi, IMAGE_PMODE_BASE
+    mov ecx, eax
+    rep movsd
+
+    jmp .hang
 
 .fail:
     mov edx, msg_pm_fail         ; set edx to sad message
@@ -65,5 +112,5 @@ protected_mode_start:
     jmp .hang                    ; loop forever (until I make more shit like a kernel)
 
 
-    msg_pm db 'Entered protected mode :)', 0
-    msg_pm_fail db 'Failed to enter protected mode :(', 0
+    msg_pm db 'Entered protected mode :)', 0x0A, 0
+    msg_pm_fail db 'Failed to enter protected mode :(', 0x0A, 0

@@ -5,36 +5,11 @@ bits 16
 
 jmp short bootloader_start
 nop
-
-    ;;
-    ;; Disk description table
-    ;;
-OEMLabel                db 'DISKBOOT'
-BytesPerSector          dw 512
-SectorsPerCluster       db 1
-ReservedForBoot         dw 1
-NumberOfFats            db 2
-RootDirEntries          dw 0E0h
-
-LogicalSectors          dw 2880
-MediumByte              db 0F0h
-SectorsPerFat           dw 9
-SectorsPerTrack         dw 18
-Sides                   dw 2
-HiddenSectors           dd 0
-LargeSectors            dd 0
-
-DriveNo                 db 0
-                        db 0    ; reserved
-Signature               db 29h
-VolumeID                dd 12h, 34h, 56h, 78h
-VolumeLabel             db 'FUCK YOU   '
-FileSystem              db 'FAT12   '
-
     ;;
     ;; Main bootloader code
     ;;
 
+%include "bdp.inc"
 %include "stdio.inc"
 
 bootloader_start:
@@ -59,7 +34,6 @@ bootloader_start:
     mov ah, 08h             ; get drive parameters
     int 13h
 
-    jc fatal_disk_error
     pop es
 
     and cl, 0x3F                ; maximum sector number
@@ -68,6 +42,7 @@ bootloader_start:
 
     inc dh
     mov [Sides], dh
+
 
     ;;
     ;; Load the root directory from the disk
@@ -189,85 +164,6 @@ bootloader_start:
 
     jmp STAGE2_LOAD_SEGMENT:STAGE2_LOAD_OFFSET
 
-lba_to_chs:
-    push ax
-    push dx
-
-    xor dx, dx                  ; dx = 0
-    div word [SectorsPerTrack]  ; ax = LBA / SectorsPerTrack
-
-    inc dx                      ; dx = (LBA % SectorsPerTrack + 1) = sector
-    mov cx, dx                  ; cx = sector
-
-    xor dx, dx                  ; dx = 0
-    div word [Sides]            ; ax = (LBA / SectorsPerTrack) / Sides = cylinder
-                                ; dx = (LBA / SectorsPerTrack) % Sides = side
-    mov dh, dl                  ; dh = side
-    mov ch, al                  ; ch = cylinder (lower 8 bits)
-    shl ah, 6
-    or cl, ah                   ; put upper 2 bits of cylinder in CL
-
-    pop ax
-    mov dl, al                  ; restore dl
-    pop ax
-    ret
-
-    ;;
-    ;; Disk read
-    ;; params:
-    ;; ax = LBA addr
-    ;; cl = number of sectors to read (up to 128)
-    ;; dl = drive number
-    ;; es:bx memory addr to store read data
-    ;;
-
-disk_read:
-    push ax
-    push bx
-    push cx
-    push dx
-    push di
-
-    push cx
-    call lba_to_chs             ; modifies CH, CL, DH
-    pop ax
-
-    mov ah, 02h
-    mov di, 3                   ; retry count
-
-.retry:
-    pusha
-    stc
-    int 13h
-    jnc .done           ; if success, jump to done
-
-    popa
-    call disk_reset     ; reset disk on error
-    dec di              ; reduce retry count
-    test di, di
-    jnz .retry          ; try again if di > 0
-
-    jmp fatal_disk_error
-
-.done:
-    popa
-
-    pop di
-    pop dx
-    pop cx
-    pop bx
-    pop ax
-    ret
-
-disk_reset:
-    pusha
-    mov ah, 0
-    stc
-    int 13h
-    jc fatal_disk_error
-    popa
-    ret
-
     ;;
     ;; Error handlers
     ;;
@@ -291,6 +187,8 @@ wait_key_and_reboot:
     ;;
     ;; Variables and stuff
     ;;
+
+%include "floppy16.inc"
 
 msg_loading:            db 'Loading...', ENDL, 0
 msg_read_failed:        db 'Disk failed', ENDL, 0

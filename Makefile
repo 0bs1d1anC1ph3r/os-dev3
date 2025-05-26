@@ -12,7 +12,7 @@ all: floppy_image
 #
 # Floppy image
 #
-floppy_image: bootloader
+floppy_image: bootloader kernel
 	@echo "[+] Creating blank floppy image"
 	dd if=/dev/zero of=$(BUILD_DIR)/main_floppy.img bs=512 count=2880
 	@echo "[+] Writing stage1 to boot sector (LBA 0)"
@@ -38,10 +38,10 @@ $(BUILD_DIR)/stage2.bin: always
 #
 # Kernel
 #
-#kernel: $(BUILD_DIR)/kernel.bin
+kernel: $(BUILD_DIR)/kernel.bin
 
-#$(BUILD_DIR)/kernel.bin: always
-#	$(MAKE) -C $(SRC_DIR)/kernel BUILD_DIR=$(abspath $(BUILD_DIR))
+$(BUILD_DIR)/kernel.bin: always
+	$(MAKE) -C $(SRC_DIR)/kernel BUILD_DIR=$(abspath $(BUILD_DIR)) INCLUDE_DIR=$(abspath $(INCLUDE_DIR))
 
 #
 # Always

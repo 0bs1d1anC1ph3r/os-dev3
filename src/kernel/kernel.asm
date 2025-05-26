@@ -1,5 +1,5 @@
 org 0x0
-bits 16
+bits 32:w
 
 
 %define ENDL 0x0D, 0x0A
